@@ -1,0 +1,1421 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Real-Time Staff Surveillance and Movement Pattern Analysis — Colorful</title>
+
+  <!-- Embedded CSS: Colorful theme -->
+  <style>
+    :root{
+      --bg: linear-gradient(135deg, #0f1fd0 0%, #37962b 100%);
+      --panel: rgba(255, 255, 255, 0.9);
+      --card: rgba(255, 255, 255, 0.85);
+      --muted: #6c757d;
+      --primary: #76aa15;
+      --secondary: #29a7a1;
+      --accent: #ffd166;
+      --success: #06d6a0;
+      --danger: #ef476f;
+      --info: #118ab2;
+      --glass: rgba(255,255,255,0.15);
+      --radius:16px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      background: var(--bg);
+      color:#2d3748; 
+      -webkit-font-smoothing:antialiased;
+    }
+    .container{
+      max-width:1240px;
+      margin:20px auto;
+      padding:18px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px
+    }
+
+    /* Header */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background: var(--panel);
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center
+    }
+    .logo{
+      width:56px;
+      height:56px;
+      border-radius:16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      color:rgb(251, 247, 247);
+      font-size:20px;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+    }
+    h1{
+      margin:0;
+      font-size:22px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    /* Login/role chooser & description */
+    .top{
+      display:grid;
+      grid-template-columns:420px 1fr;
+      gap:20px;
+      align-items:start
+    }
+    @media (max-width:980px){ .top{grid-template-columns:1fr} }
+
+    .hero{
+      background: var(--panel);
+      border-radius:var(--radius);
+      padding:20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    .desc{
+      font-size:14px;
+      color:var(--muted);
+      margin-top:8px;
+      line-height:1.5
+    }
+    .roles{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap
+    }
+    .role-btn{
+      background: rgb(255,255,255);
+      border: 1px solid rgba(255,255,255,0.5);
+      padding:10px 14px;
+      border-radius:10px;
+      color: var(--primary);
+      cursor:pointer;
+      font-weight:700;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      transition:all .2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .role-btn:hover{
+      transform:translateY(-3px);
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    /* Main layout: left content + right map (for HOD) */
+    .main{
+      display:grid;
+      grid-template-columns:1fr 360px;
+      gap:20px;
+      align-items:start
+    }
+    @media (max-width:1100px){ .main{grid-template-columns:1fr} }
+
+    /* Rooms grid */
+    .rooms{
+      background:var(--panel);
+      padding:16px;
+      border-radius:var(--radius);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(5px);
+    }
+    .rooms-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+      margin-top:16px
+    }
+    @media (max-width:1100px){ .grid{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:640px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background: var(--card);
+      padding:16px;
+      border-radius:var(--radius);
+      border: 1px solid rgba(255,255,255,0.4);
+      min-height:140px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      transition:all .3s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .card:hover{
+      transform:translateY(-5px);
+      border-color: var(--primary);
+      box-shadow: 0 12px 30px rgba(255, 107, 107, 0.15);
+    }
+    .room-name{
+      font-weight:800;
+      color:#2d3748;
+      font-size:18px;
+    }
+    .last-seen{
+      font-size:13px;
+      color:var(--muted)
+    }
+    .status-badge{
+      display:inline-block;
+      padding:6px 12px;
+      border-radius:20px;
+      font-weight:700;
+      font-size:12px;
+    }
+    .present{
+      background:rgba(6, 214, 160, 0.15);
+      color:var(--success);
+      border:1px solid rgba(6, 214, 160, 0.3);
+    }
+    .absent{
+      background:rgba(239, 71, 111, 0.1);
+      color:var(--danger);
+      border:1px solid rgba(239, 71, 111, 0.2);
+    }
+
+    /* Search & timeline panel */
+    .panel{
+      background:var(--panel);
+      padding:16px;
+      border-radius:var(--radius);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(5px);
+    }
+    .controls{
+      display:flex;
+      gap:12px;
+      align-items:center
+    }
+    .control-item{
+      background: white;
+      border:1px solid rgba(255,255,255,0.5);
+      padding:10px 12px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    input[type="text"], input[type="date"]{
+      background:transparent;
+      border:0;
+      color:#2d3748;
+      outline:none;
+      font-size:14px;
+      width: 100%;
+    }
+    input::placeholder {
+      color: #a0aec0;
+    }
+    button.primary{
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color:white;
+      border:0;
+      padding:12px 16px;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .2s;
+      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    }
+    button.primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 20px rgba(255, 107, 107, 0.4);
+    }
+
+    .timeline{
+      margin-top:16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px
+    }
+    .timeline-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.4);
+      background: white;
+      transition:all .2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .timeline-row:hover{
+      transform: translateX(5px);
+      border-color: var(--secondary);
+      box-shadow: 0 4px 12px rgba(78, 205, 196, 0.15);
+    }
+    .avatar{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:white;
+      box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
+    }
+    .meta{
+      font-size:13px;
+      color:var(--muted)
+    }
+    .time{
+      font-weight:700;
+      color:#2d3748
+    }
+
+    /* Right panel: simulated map */
+    .map-panel{
+      background: var(--panel);
+      border-radius:var(--radius);
+      padding:16px;
+      border: 1px solid rgba(255,255,255,0.3);
+      min-height:420px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(5px);
+    }
+    .map-canvas{
+      width:100%;
+      height:420px;
+      border-radius:12px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      position:relative;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    }
+    .map-node{
+      position:absolute;
+      padding:8px 12px;
+      border-radius:10px;
+      background: white;
+      border:1px solid rgba(255,255,255,0.5);
+      font-weight:700;
+      color: var(--primary);
+      font-size:13px;
+      transform:translate(-50%,-50%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      backdrop-filter: blur(5px);
+    }
+    .map-marker{
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background: var(--primary);
+      box-shadow:0 4px 12px rgba(255, 107, 107, 0.4);
+      border: 2px solid white;
+    }
+    .path-line{
+      position:absolute;
+      background: linear-gradient(90deg, rgba(255, 107, 107, 0.6), rgba(78, 205, 196, 0.6));
+      height:4px;
+      border-radius:2px;
+      transform-origin:left center;
+      opacity:0.9;
+    }
+
+    /* footer */
+    footer{
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+      margin-top:20px;
+      padding: 16px;
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    /* modal */
+    .modal-back{
+      position:fixed;
+      inset:0;
+      background: rgba(102, 126, 234, 0.8);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:60;
+      backdrop-filter: blur(5px);
+    }
+    .modal{
+      width:420px;
+      background: var(--panel);
+      border-radius:var(--radius);
+      padding:20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow:0 20px 60px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    .modal h3{
+      margin:0 0 8px 0;
+      color: var(--primary);
+      font-size:20px;
+    }
+    .form-row{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:12px
+    }
+    .input{
+      background: white;
+      border:1px solid rgba(255,255,255,0.5);
+      padding:10px;
+      border-radius:10px;
+      color:#2d3748;
+      transition:all .2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .input:focus{
+      border-color:var(--primary);
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+    }
+    .btn-row{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:16px
+    }
+    .btn-ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.5);
+      padding:8px 12px;
+      border-radius:8px;
+      color:var(--muted);
+      transition:all .2s;
+    }
+    .btn-ghost:hover{
+      background:rgba(255,255,255,0.3);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .small{
+      font-size:12px;
+      color:var(--muted)
+    }
+
+    /* tiny loader */
+    .loader{
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,0.3);
+      border-top-color:var(--primary);
+      animation:spin 1s linear infinite
+    }
+    @keyframes spin{
+      to{
+        transform:rotate(360deg)
+      }
+    }
+
+    /* Dashboard specific styles */
+    .dashboard-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:16px;
+    }
+    .welcome-msg{
+      font-size:16px;
+      color:var(--muted);
+    }
+    .dashboard-card{
+      background:var(--panel);
+      padding:20px;
+      border-radius:var(--radius);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+      backdrop-filter: blur(5px);
+    }
+    .dashboard-card h3{
+      margin-top:0;
+      color: var(--primary);
+      font-size:20px;
+    }
+    
+    /* Login screen */
+    .login-screen{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:80vh;
+      text-align:center;
+      padding:40px 20px;
+    }
+    .login-title{
+      font-size:36px;
+      font-weight:800;
+      margin-bottom:12px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .login-subtitle{
+      color:white;
+      margin-bottom:40px;
+      max-width:500px;
+      font-size:16px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .login-options{
+      display:flex;
+      gap:20px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .login-option{
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius:var(--radius);
+      padding:28px;
+      width:220px;
+      cursor:pointer;
+      transition:all .3s;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+    }
+    .login-option:hover{
+      transform:translateY(-10px) scale(1.03);
+      border-color: var(--primary);
+      box-shadow:0 15px 40px rgba(255, 107, 107, 0.2);
+    }
+    .login-option-icon{
+      width:60px;
+      height:60px;
+      border-radius:16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:700;
+      font-size:24px;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+    }
+    .login-option-title{
+      font-weight:800;
+      font-size:18px;
+      color: var(--primary);
+    }
+    .login-option-desc{
+      font-size:14px;
+      color:var(--muted);
+      text-align:center;
+      line-height:1.5;
+    }
+    
+    /* Role-specific indicators */
+    .role-indicator{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 12px;
+      border-radius:20px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .role-student{
+      background:rgba(255, 107, 107, 0.15);
+      color:var(--primary);
+      border:1px solid rgba(255, 107, 107, 0.3);
+    }
+    .role-teacher{
+      background:rgba(78, 205, 196, 0.15);
+      color:var(--secondary);
+      border:1px solid rgba(78, 205, 196, 0.3);
+    }
+    .role-hod{
+      background:rgba(255, 209, 102, 0.15);
+      color:#e6a700;
+      border:1px solid rgba(255, 209, 102, 0.3);
+    }
+
+    /* Flipping Cards Section */
+    .flipping-cards-section {
+      margin: 50px 0;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .section-title {
+      text-align: center;
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .flipping-cards {
+      display: flex;
+      gap: 150px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .flip-card {
+      width: 280px;
+      height: 320px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    .flip-card:hover .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: var(--radius);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+
+    .flip-card-front {
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+    }
+
+    .flip-card-back {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      transform: rotateY(180deg);
+      text-align: left;
+      justify-content: flex-start;
+    }
+
+    .flip-card-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    .flip-card-title {
+      font-weight: 800;
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .flip-card-desc {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .flip-card-back-title {
+      font-weight: 800;
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: white;
+      text-align: center;
+      width: 100%;
+    }
+
+    .flip-card-back-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .flip-card-back-list {
+      text-align: left;
+      padding-left: 20px;
+      margin: 15px 0;
+    }
+
+    .flip-card-back-list li {
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen (shown initially) -->
+  <div id="loginScreen" class="login-screen">
+    <div class="brand" style="margin-bottom:40px;">
+      <div class="logo">RT</div>
+      <div>
+        <h1 class="login-title">Real-Time Staff Surveillance</h1>
+        <p class="login-subtitle">Monitor teacher presence across rooms with our advanced face recognition system</p>
+      </div>
+    </div>
+    
+    <div class="login-options">
+      <div class="login-option" data-role="student">
+        <div class="login-option-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z"/></svg>
+        </div>
+        <div class="login-option-title">Student</div>
+        <div class="login-option-desc">View current teacher locations only</div>
+      </div>
+      
+      <div class="login-option" data-role="teacher">
+        <div class="login-option-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm6 2v6H6v-6c0-2 4-3 6-3s6 1 6 3z"/></svg>
+        </div>
+        <div class="login-option-title">Teacher</div>
+        <div class="login-option-desc">View current locations and your own status</div>
+      </div>
+      
+      <div class="login-option" data-role="hod">
+        <div class="login-option-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 7l10 5 10-5-10-5zm0 7.1L7.6 7.6 12 5.9 16.4 7.6 12 9.1zM2 17l10 5 10-5v-2l-10 5-10-5v2z"/></svg>
+        </div>
+        <div class="login-option-title">HOD</div>
+        <div class="login-option-desc">Full access to history, analytics and movement maps</div>
+      </div>
+    </div>
+
+    <!-- Flipping Cards Section -->
+    <div class="flipping-cards-section">
+      <h2 class="section-title">About The Project</h2>
+      <div class="flipping-cards">
+        <!-- Card 1: Technology -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <div class="flip-card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24"><path fill="white" d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+              </div>
+              <div class="flip-card-title">Advanced Technology</div>
+              <div class="flip-card-desc">Learn about the cutting-edge technology powering our surveillance system</div>
+            </div>
+            <div class="flip-card-back">
+              <div class="flip-card-back-title">Technology Stack</div>
+              <div class="flip-card-back-desc">
+                Our system utilizes:
+                <ul class="flip-card-back-list">
+                  <li>Real-time Face Recognition AI</li>
+                  <li>Advanced Movement Tracking</li>
+                  <li>Secure Cloud Infrastructure</li>
+                  <li>Privacy-First Architecture</li>
+                </ul>
+                Built with modern web technologies and machine learning algorithms.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Features -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <div class="flip-card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24"><path fill="white" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              </div>
+              <div class="flip-card-title">Key Features</div>
+              <div class="flip-card-desc">Discover the powerful features that make our system stand out</div>
+            </div>
+            <div class="flip-card-back">
+              <div class="flip-card-back-title">System Features</div>
+              <div class="flip-card-back-desc">
+                <ul class="flip-card-back-list">
+                  <li>Real-time Location Tracking</li>
+                  <li>Movement Pattern Analysis</li>
+                  <li>Multi-role Access Control</li>
+                  <li>Historical Data Analytics</li>
+                  <li>Interactive Visualization</li>
+                  <li>Automated Reporting</li>
+                </ul>
+                Designed for educational institutions.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Benefits -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+              <div class="flip-card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24"><path fill="white" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </div>
+              <div class="flip-card-title">Benefits</div>
+              <div class="flip-card-desc">Understand how our system improves educational efficiency</div>
+            </div>
+            <div class="flip-card-back">
+              <div class="flip-card-back-title">Key Benefits</div>
+              <div class="flip-card-back-desc">
+                <ul class="flip-card-back-list">
+                  <li>Improved Staff Accountability</li>
+                  <li>Enhanced Campus Security</li>
+                  <li>Optimized Resource Allocation</li>
+                  <li>Data-Driven Decision Making</li>
+                  <li>Reduced Administrative Burden</li>
+                </ul>
+                Transform how you manage educational facilities.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer style="margin-top:60px; background: transparent; color: white; box-shadow: none; border: none;">
+      Prototype — demo only. For production, implement secure auth and privacy safeguards.
+    </footer>
+  </div>
+
+  <!-- Main Dashboard (hidden initially) -->
+  <div id="dashboard" class="container" style="display:none">
+    <header>
+      <div class="brand">
+        <div class="logo">RT</div>
+        <div>
+          <h1>Real-Time Staff Surveillance and Movement Pattern Analysis</h1>
+          <p class="subtitle" id="dashboardSubtitle">Monitor teacher presence across rooms</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="role-indicator" id="roleBadge">Not logged in</div>
+        <button class="role-btn" id="logoutBtn" title="Logout" style="display:none">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- top area: welcome message and stats -->
+    <div class="top">
+      <div class="hero">
+        <div class="dashboard-header">
+          <div>
+            <h2 style="margin:0;color:var(--primary)" id="welcomeTitle">Welcome</h2>
+            <div class="welcome-msg" id="welcomeMsg">Select a role to get started</div>
+          </div>
+          <div id="quickActions" style="display:none">
+            <button class="role-btn" id="refreshBtn" title="Refresh rooms">
+              <svg width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <div class="desc" id="roleDescription">
+          This prototype demonstrates real-time staff location detection using face recognition. Use the login options to view different role-based UIs.
+        </div>
+      </div>
+
+      <!-- right: quick stats -->
+      <div class="hero" style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Total Rooms</div>
+            <div id="totalRooms" style="font-weight:800;font-size:24px; color: var(--primary);">—</div>
+          </div>
+          <div>
+            <div class="small">Active Teachers</div>
+            <div id="activeTeachers" style="font-weight:800;font-size:24px;color:var(--secondary)">—</div>
+          </div>
+        </div>
+
+        <div id="additionalStats" style="display:none">
+          <div class="small">Additional Stats</div>
+          <div style="display:flex;gap:12px">
+            <div>
+              <div class="small">Avg. Stay Time</div>
+              <div style="font-weight:800;font-size:18px; color: var(--primary);">42 min</div>
+            </div>
+            <div>
+              <div class="small">Most Active</div>
+              <div style="font-weight:800;font-size:18px;color:var(--secondary)">Room 101</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- main content -->
+    <div class="main">
+      <div>
+        <!-- Student/Teacher Dashboard -->
+        <div id="basicDashboard">
+          <div class="rooms">
+            <div class="rooms-header">
+              <div>
+                <h3 style="margin:0; color: var(--primary);">Current Room Status</h3>
+                <div class="small">Auto-refresh every 5s · Last updated: <span id="lastUpdated">—</span></div>
+              </div>
+            </div>
+
+            <div id="roomsGrid" class="grid" style="margin-top:16px"></div>
+          </div>
+        </div>
+
+        <!-- HOD Dashboard -->
+        <div id="hodDashboard" style="display:none">
+          <div class="dashboard-card">
+            <h3>Advanced Analytics</h3>
+            <div class="controls">
+              <div class="control-item" style="min-width:220px">
+                <svg width="16" height="16" viewBox="0 0 24 24" style="opacity:.9;margin-right:6px"><path fill="currentColor" d="M9.5 3C6.46 3 4 5.46 4 8.5S6.46 14 9.5 14 15 11.54 15 8.5 12.54 3 9.5 3zM2 20.5C2 17.47 6.3 15 11 15s9 2.47 9 5.5V22H2v-1.5z"/></svg>
+                <input id="name" placeholder="Teacher name" type="text" />
+              </div>
+
+              <div class="control-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" style="opacity:.9;margin-right:6px"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1 .9 2 2 2h14c1.1 0 2-0.9 2-2V5c0-1.1-.9-2-2-2zM5 8h14v11H5V8z"/></svg>
+                <input id="date" type="date" />
+              </div>
+
+              <button class="primary" id="searchBtn">Search</button>
+            </div>
+          </div>
+
+          <div class="rooms">
+            <div class="rooms-header">
+              <div>
+                <h3 style="margin:0; color: var(--primary);">Rooms</h3>
+                <div class="small">Auto-refresh every 5s · Last updated: <span id="lastUpdatedHod">—</span></div>
+              </div>
+            </div>
+
+            <div id="roomsGridHod" class="grid" style="margin-top:16px"></div>
+          </div>
+
+          <!-- timeline panel (visible only to HOD) -->
+          <div id="timelinePanel" class="panel" style="margin-top:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0; color: var(--primary);">Teacher Timeline</h3>
+              <div class="small" id="timelineSummary">—</div>
+            </div>
+
+            <div id="timeline" class="timeline"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: animated simulated map for HOD -->
+      <div id="mapPanel" class="map-panel" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div class="small">Movement Visualization</div>
+            <div style="font-weight:800; color: var(--primary);" id="mapTeacherName">—</div>
+          </div>
+          <div class="small">Playback:
+            <button class="role-btn" id="playPath" style="padding:6px 10px">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+              Play
+            </button>
+            <button class="role-btn" id="pausePath" style="padding:6px 10px">
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              Pause
+            </button>
+          </div>
+        </div>
+
+        <div class="map-canvas" id="mapCanvas">
+          <!-- nodes & markers injected here -->
+        </div>
+        <div class="small" style="margin-top:12px;color:var(--muted)">Visual representation of teacher movement patterns</div>
+      </div>
+    </div>
+
+    <footer>
+      Prototype — demo only. For production, implement secure auth and privacy safeguards.
+    </footer>
+  </div>
+
+  <!-- Modal: login -->
+  <div class="modal-back" id="modalBack">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">Login</h3>
+      <div class="small" id="modalRoleDesc">Enter credentials</div>
+      <div class="form-row">
+        <input id="loginId" class="input" placeholder="ID (any text)" />
+        <input id="loginPass" class="input" placeholder="Password (any)" type="password" />
+      </div>
+      <div class="btn-row">
+        <button class="btn-ghost" id="modalCancel">Cancel</button>
+        <button class="role-btn" id="modalSubmit">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embedded JS: role logic, UI + API integration, map simulation -->
+  <script>
+    // --- State ---
+    let currentRole = null; // 'student' | 'teacher' | 'hod'
+    let loggedIn = false;
+    let selectedTeacherForMap = null;
+    let playbackTimer = null;
+    let playbackIndex = 0;
+    let playbackPath = []; // array of {room, start, end}
+    let roomPositions = {}; // room_name -> {x,y}
+    let nodes = {}; // DOM nodes for map markers
+
+    // Utility functions
+    function fmtDateTime(ts){
+      if(!ts) return '—';
+      return new Date(ts*1000).toLocaleString();
+    }
+    function intervalOverlapsDate(start_ts, end_ts, targetYMD){
+      if(!targetYMD) return true;
+      const start = new Date(start_ts*1000);
+      const end = end_ts ? new Date(end_ts*1000) : new Date();
+      const target = new Date(targetYMD + 'T00:00:00');
+      const targetEnd = new Date(targetYMD + 'T23:59:59');
+      return (start <= targetEnd) && (end >= target);
+    }
+
+    // --- Login / role handling (frontend-only) ---
+    document.querySelectorAll('.login-option').forEach(option=>{
+      option.addEventListener('click', ()=>{
+        const role = option.getAttribute('data-role');
+        openLoginModal(role);
+      });
+    });
+
+    function openLoginModal(role){
+      currentRole = role;
+      document.getElementById('modalBack').style.display='flex';
+      document.getElementById('modalTitle').innerText = 'Login as ' + role.toUpperCase();
+      document.getElementById('modalRoleDesc').innerText = getRoleDescription(role);
+      document.getElementById('loginId').value='';
+      document.getElementById('loginPass').value='';
+      document.getElementById('loginId').focus();
+    }
+
+    function getRoleDescription(role) {
+      switch(role) {
+        case 'student': return 'Students can view current teacher locations only.';
+        case 'teacher': return 'Teachers can view current locations and their own status.';
+        case 'hod': return 'HODs get full access to history, analytics and movement maps.';
+        default: return 'Enter credentials';
+      }
+    }
+
+    document.getElementById('modalCancel').addEventListener('click', ()=>{
+      document.getElementById('modalBack').style.display='none';
+      currentRole = null;
+    });
+
+    document.getElementById('modalSubmit').addEventListener('click', ()=>{
+      const id = document.getElementById('loginId').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      if(!id || !pass){ alert('Enter ID and password (dummy)'); return; }
+      // Dummy accept -> set logged in
+      loggedIn = true;
+      document.getElementById('modalBack').style.display='none';
+      applyRole(currentRole, id);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', ()=>{
+      loggedIn = false;
+      currentRole = null;
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('roleBadge').innerText = 'Not logged in';
+      document.getElementById('logoutBtn').style.display='none';
+      // Reset all UI elements
+      resetDashboard();
+    });
+
+    function applyRole(role, id){
+      // Hide login screen, show dashboard
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'grid';
+      
+      // Update UI based on role
+      document.getElementById('roleBadge').innerText = role.toUpperCase() + ' — ' + id;
+      document.getElementById('roleBadge').className = `role-indicator role-${role}`;
+      document.getElementById('logoutBtn').style.display='inline-flex';
+      document.getElementById('quickActions').style.display='flex';
+      
+      // Update welcome message
+      document.getElementById('welcomeTitle').innerText = `Welcome, ${id}`;
+      document.getElementById('welcomeMsg').innerText = getWelcomeMessage(role);
+      document.getElementById('dashboardSubtitle').innerText = getDashboardSubtitle(role);
+      
+      // Role-specific visibility
+      if(role === 'hod'){
+        document.getElementById('basicDashboard').style.display = 'none';
+        document.getElementById('hodDashboard').style.display = 'block';
+        document.getElementById('mapPanel').style.display = 'block';
+        document.getElementById('additionalStats').style.display = 'block';
+      } else {
+        document.getElementById('basicDashboard').style.display = 'block';
+        document.getElementById('hodDashboard').style.display = 'none';
+        document.getElementById('mapPanel').style.display = 'none';
+        document.getElementById('additionalStats').style.display = 'none';
+      }
+      
+      // store
+      currentRole = role;
+      // refresh UI immediately
+      loadRooms();
+    }
+
+    function getWelcomeMessage(role) {
+      switch(role) {
+        case 'student': return 'You can view current teacher locations across all rooms.';
+        case 'teacher': return 'Monitor your colleagues\' current locations and status.';
+        case 'hod': return 'Full access to analytics, history and movement patterns.';
+        default: return 'Monitor teacher presence across rooms.';
+      }
+    }
+
+    function getDashboardSubtitle(role) {
+      switch(role) {
+        case 'student': return 'View current teacher locations only';
+        case 'teacher': return 'View current locations and status';
+        case 'hod': return 'Full analytics, history and movement patterns';
+        default: return 'Monitor teacher presence across rooms';
+      }
+    }
+
+    function resetDashboard() {
+      // Reset all UI elements to default state
+      document.getElementById('roomsGrid').innerHTML = '';
+      document.getElementById('roomsGridHod').innerHTML = '';
+      document.getElementById('timeline').innerHTML = '';
+      document.getElementById('mapCanvas').innerHTML = '';
+      document.getElementById('totalRooms').innerText = '—';
+      document.getElementById('activeTeachers').innerText = '—';
+      document.getElementById('lastUpdated').innerText = '—';
+      document.getElementById('lastUpdatedHod').innerText = '—';
+      document.getElementById('timelineSummary').innerText = '—';
+      document.getElementById('mapTeacherName').innerText = '—';
+      
+      selectedTeacherForMap = null;
+      playbackPath = []; 
+      stopPlayback();
+    }
+
+    // --- Rooms loading ---
+    async function loadRooms(){
+      try{
+        const res = await fetch('/api/rooms');
+        const rooms = await res.json();
+        
+        // Update both room grids if needed
+        updateRoomGrid(document.getElementById('roomsGrid'), rooms);
+        if(currentRole === 'hod') {
+          updateRoomGrid(document.getElementById('roomsGridHod'), rooms);
+          document.getElementById('lastUpdatedHod').innerText = new Date().toLocaleTimeString();
+        }
+        
+        document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString();
+
+        // update map room positions after rendering cards
+        setTimeout(registerRoomPositions, 100);
+      }catch(err){
+        console.error('loadRooms err',err);
+      }
+    }
+
+    function updateRoomGrid(gridElement, rooms) {
+      gridElement.innerHTML='';
+      document.getElementById('totalRooms').innerText = rooms.length;
+      let activeCount = 0;
+      
+      rooms.forEach((r, idx)=>{
+        const card = document.createElement('div'); card.className='card';
+        const has = r.last_seen;
+        if(has) activeCount++;
+        const initials = has ? has.teacher.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : '';
+        card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="room-name">${r.room_name}</div>
+              <div class="small" style="margin-top:6px;color:var(--muted)">${r.source || ''}</div>
+            </div>
+            <div><span class="status-badge ${has ? 'present' : 'absent'}">${has ? 'Present' : 'No one'}</span></div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:10px;align-items:center">
+            ${ has ? `<div style="display:flex;gap:10px;align-items:center">
+                <div class="avatar">${initials}</div>
+                <div style="display:flex;flex-direction:column">
+                  <div style="font-weight:700">${has.teacher}</div>
+                  <div class="last-seen">${fmtDateTime(has.timestamp)}</div>
+                </div>
+              </div>` : `<div class="small" style="color:var(--muted)">No current occupant</div>` }
+          </div>`;
+        gridElement.appendChild(card);
+      });
+      
+      document.getElementById('activeTeachers').innerText = activeCount;
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadRooms);
+
+    // --- Search / Timeline behavior ---
+    document.getElementById('searchBtn').addEventListener('click', async ()=>{
+      const name = document.getElementById('name').value.trim();
+      const dateVal = document.getElementById('date').value || null;
+      if(!name){ alert('Enter teacher name'); return; }
+
+      // If not HOD, disallow history - show only current info
+      if(currentRole !== 'hod'){
+        // Fetch current only
+        try{
+          const cur = await fetch('/api/teacher/'+encodeURIComponent(name)+'/current');
+          const j = await cur.json();
+          alert(`${name} last seen: ${ j.room_name ? j.room_name + ' at ' + fmtDateTime(j.timestamp) : 'Not seen' }`);
+        }catch(e){ alert('Error fetching current info'); }
+        return;
+      }
+
+      // HOD: full timeline (optionally filtered by date)
+      try{
+        const tlRes = await fetch('/api/teacher/'+encodeURIComponent(name)+'/timeline');
+        const rows = await tlRes.json();
+        // Filter by date if provided
+        const filtered = dateVal ? rows.filter(r => intervalOverlapsDate(r.start, r.end, dateVal)) : rows;
+        renderTimeline(name, filtered);
+        // prepare map playback
+        selectedTeacherForMap = name;
+        playbackPath = filtered.map(r=>({room:r.room, start:r.start, end:r.end}));
+        document.getElementById('mapTeacherName').innerText = name;
+        playbackIndex = 0;
+        stopPlayback();
+        renderMapNodes(); // place nodes and allow playback
+      }catch(e){
+        console.error('search timeline err', e);
+        alert('Error fetching timeline');
+      }
+    });
+
+    function renderTimeline(name, rows){
+      const container = document.getElementById('timeline'); container.innerHTML='';
+      if(rows.length === 0){
+        container.innerHTML = `<div class="small" style="padding:10px;color:var(--muted)">No history for selected criteria.</div>`;
+        document.getElementById('timelineSummary').innerText = '0 entries';
+        return;
+      }
+      rows.sort((a,b)=> a.start - b.start);
+      rows.forEach(r=>{
+        const div = document.createElement('div'); div.className='timeline-row';
+        div.innerHTML = `
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="avatar">${name.split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>
+            <div>
+              <div style="font-weight:800">${r.room}</div>
+              <div class="meta">Start: ${fmtDateTime(r.start)}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="time">${ r.end ? fmtDateTime(r.end) : 'ongoing' }</div>
+            <div class="meta">Duration: ${computeDuration(r.start, r.end)}</div>
+          </div>`;
+        container.appendChild(div);
+      });
+      document.getElementById('timelineSummary').innerText = rows.length + ' entries';
+    }
+
+    function computeDuration(start, end){
+      const s = start*1000;
+      const e = (end? end*1000 : Date.now());
+      const diff = Math.max(0, Math.floor((e - s)/1000));
+      const hh = Math.floor(diff/3600); const mm = Math.floor((diff%3600)/60);
+      if(hh>0) return `${hh}h ${mm}m`;
+      if(mm>0) return `${mm}m`;
+      return `${diff}s`;
+    }
+
+    // --- Map simulation logic ---
+    const mapCanvas = document.getElementById('mapCanvas');
+
+    function registerRoomPositions(){
+      // Grab rendered room cards and place nodes inside map canvas
+      roomPositions = {};
+      const cards = document.querySelectorAll('#roomsGrid .card, #roomsGridHod .card');
+      const mapRect = mapCanvas.getBoundingClientRect();
+      if(cards.length === 0) return;
+
+      // pick up to 8 room cards and assign them positions around the canvas
+      const count = Math.min(cards.length, 8);
+      const padding = 40;
+      const w = mapRect.width - padding*2;
+      const h = mapRect.height - padding*2;
+      // choose spread positions in circle-ish pattern
+      for(let i=0;i<count;i++){
+        const angle = (i / count) * Math.PI * 2;
+        const cx = mapRect.width/2 + Math.cos(angle) * (Math.min(w,h)/3);
+        const cy = mapRect.height/2 + Math.sin(angle) * (Math.min(w,h)/3);
+        const roomName = cards[i].querySelector('.room-name').innerText;
+        roomPositions[roomName] = {x: cx, y: cy};
+      }
+      // render nodes for rooms
+      renderMapNodes();
+    }
+
+    function renderMapNodes(){
+      mapCanvas.innerHTML = '';
+      nodes = {};
+      // Create node elements based on roomPositions
+      for(const [room, pos] of Object.entries(roomPositions)){
+        const node = document.createElement('div');
+        node.className = 'map-node';
+        node.style.left = pos.x + 'px';
+        node.style.top = pos.y + 'px';
+        node.innerHTML = `<div style="display:flex;align-items:center;gap:8px"><div class="map-marker"></div><div style="font-weight:700;color:var(--primary)">${room}</div></div>`;
+        mapCanvas.appendChild(node);
+        nodes[room] = {el: node, x: pos.x, y: pos.y};
+      }
+      // create moving marker for selected teacher
+      if(!selectedTeacherForMap){
+        const p = document.createElement('div'); p.className='map-node'; p.style.left='50%'; p.style.top='50%'; p.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="map-marker" style="background:rgba(255,255,255,0.7)"></div><div style="color:white; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Select a teacher</div></div>`;
+        mapCanvas.appendChild(p);
+      } else {
+        createMovingMarker();
+      }
+    }
+
+    function createMovingMarker(){
+      // Remove old mover if any
+      const existing = mapCanvas.querySelector('.mover');
+      if(existing) existing.remove();
+      const mover = document.createElement('div');
+      mover.className = 'map-node mover';
+      mover.style.left = '50%'; mover.style.top='50%';
+      mover.style.zIndex = 40;
+      mover.style.padding = '8px 12px';
+      mover.style.background = 'linear-gradient(90deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1))';
+      mover.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div class="map-marker" style="box-shadow:0 6px 20px rgba(255, 107, 107, 0.5)"></div><div style="font-weight:800;color:var(--primary)">${selectedTeacherForMap}</div></div>`;
+      mapCanvas.appendChild(mover);
+      // Start at first position if playbackPath exists
+      if(playbackPath.length>0){
+        const firstRoom = playbackPath[0].room;
+        if(nodes[firstRoom]) moveElementTo(mover, nodes[firstRoom].x, nodes[firstRoom].y, 400);
+      } else {
+        // idle at center
+        mover.style.left = (mapCanvas.clientWidth/2) + 'px';
+        mover.style.top = (mapCanvas.clientHeight/2) + 'px';
+      }
+    }
+
+    function moveElementTo(el, x, y, duration=800){
+      // CSS transition
+      el.style.transition = `all ${duration}ms ease-in-out`;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+    }
+
+    // Playback control
+    document.getElementById('playPath').addEventListener('click', ()=>{
+      if(!selectedTeacherForMap) { alert('Search/select a teacher (HOD) first'); return; }
+      startPlayback();
+    });
+    document.getElementById('pausePath').addEventListener('click', stopPlayback);
+
+    function startPlayback(){
+      if(playbackPath.length === 0){ alert('No path to play'); return; }
+      playbackIndex = 0;
+      playNext();
+    }
+    function stopPlayback(){
+      if(playbackTimer) { clearTimeout(playbackTimer); playbackTimer = null; }
+    }
+    function playNext(){
+      if(playbackIndex >= playbackPath.length) { playbackIndex = 0; return; } // stop or loop
+      const step = playbackPath[playbackIndex];
+      // move mover to room position (if exists)
+      const mover = mapCanvas.querySelector('.mover');
+      if(!mover) return;
+      const node = nodes[step.room];
+      if(node){
+        moveElementTo(mover, node.x, node.y, 900);
+      }
+      // advance after a short time - interval proportional to duration (or fixed)
+      playbackTimer = setTimeout(()=>{
+        playbackIndex++;
+        playNext();
+      }, 1200); // 1.2s per step for demo
+    }
+
+    // --- Init ---
+    // No auto-load on init since we start with login screen
+
+    // auto-register room positions in case layout changes
+    window.addEventListener('resize', ()=> setTimeout(registerRoomPositions, 200));
+
+    // Expose some helpful behavior for HOD: clicking map node shows recent occupants (best-effort)
+    mapCanvas.addEventListener('click', (ev)=>{
+      if(currentRole !== 'hod') return;
+      const target = ev.target.closest('.map-node');
+      if(!target) return;
+      const text = target.innerText || '';
+      const room = text.trim().split('\\n')[0];
+      // show simple alert for demo
+      alert('Room: ' + room + '\\n(For HOD: click a teacher search to play full movement.)');
+    });
+
+  </script>
+</body>
+</html>

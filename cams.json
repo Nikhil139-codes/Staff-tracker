@@ -1,0 +1,5 @@
+[
+  {"id": 1, "room_name": "Room-101", "source": "http://192.0.0.4:8080/shot.jpg"},
+  {"id": 2, "room_name": "Room-102", "source": "http://10.46.122.12:8080/shot.jpg"},
+  {"id": 3, "room_name": "Room-103", "source": "http://10.46.122.37:8080/shot.jpg"}
+]
